@@ -1,0 +1,78 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id            String     @id @default(uuid())
+  email         String     @unique
+  password      String
+  firstName     String
+  lastName      String
+  role          Role       @default(PATIENT)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  lastLoginAt   DateTime?
+  
+  // Relations
+  analyses      Analysis[]
+  activityLogs  ActivityLog[]
+  
+  @@index([email])
+  @@index([role])
+}
+
+model Analysis {
+  id              String       @id @default(uuid())
+  userId          String
+  fileName        String
+  fileSize        Int
+  uploadPath      String
+  status          AnalysisStatus @default(PENDING)
+  results         Json?
+  error           String?
+  startedAt       DateTime     @default(now())
+  completedAt     DateTime?
+  processingTime  Int?         // in seconds
+  
+  // Relations
+  user            User         @relation(fields: [userId], references: [id])
+  activityLogs    ActivityLog[]
+  
+  @@index([userId])
+  @@index([status])
+  @@index([startedAt])
+}
+
+model ActivityLog {
+  id          String       @id @default(uuid())
+  userId      String
+  analysisId  String?
+  action      String
+  details     Json?
+  timestamp   DateTime     @default(now())
+  
+  // Relations
+  user        User         @relation(fields: [userId], references: [id])
+  analysis    Analysis?    @relation(fields: [analysisId], references: [id])
+  
+  @@index([userId])
+  @@index([analysisId])
+  @@index([timestamp])
+}
+
+enum Role {
+  PATIENT
+  CLINICIAN
+  ADMIN
+}
+
+enum AnalysisStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
