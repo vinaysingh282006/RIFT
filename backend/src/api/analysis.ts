@@ -148,6 +148,24 @@ analysisRouter.patch('/:id/status', authenticateToken, async (req: any, res: Res
 
     logger.info(`Analysis ${id} updated to status: ${status}`);
 
+    // If analysis is complete, schedule cleanup of uploaded file
+    if (status === 'COMPLETED' || status === 'FAILED') {
+      setTimeout(async () => {
+        try {
+          // Delete the uploaded file after processing is complete
+          if (analysis.upload_path) {
+            const fs = await import('fs');
+            if (fs.existsSync(analysis.upload_path)) {
+              fs.unlinkSync(analysis.upload_path);
+              logger.info(`Cleaned up uploaded file: ${analysis.upload_path}`);
+            }
+          }
+        } catch (cleanupError) {
+          logger.error(`Error cleaning up file for analysis ${id}:`, cleanupError);
+        }
+      }, 10 * 60 * 1000); // Clean up after 10 minutes
+    }
+
     res.status(200).json({
       message: 'Analysis status updated',
       analysis
@@ -173,6 +191,19 @@ analysisRouter.delete('/:id', authenticateToken, async (req: any, res: Response)
     // Check permissions
     if (analysis.user_id !== userId && req.user.role !== 'CLINICIAN' && req.user.role !== 'ADMIN') {
       return res.status(403).json({ error: 'Insufficient permissions' });
+    }
+
+    // Delete the uploaded file if it exists
+    try {
+      if (analysis.upload_path) {
+        const fs = await import('fs');
+        if (fs.existsSync(analysis.upload_path)) {
+          fs.unlinkSync(analysis.upload_path);
+          logger.info(`Cleaned up uploaded file: ${analysis.upload_path}`);
+        }
+      }
+    } catch (fileError) {
+      logger.error(`Error deleting uploaded file for analysis ${id}:`, fileError);
     }
 
     // In a real implementation, you'd delete the file and database record

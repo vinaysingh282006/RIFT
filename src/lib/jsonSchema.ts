@@ -207,7 +207,11 @@ export function transformToCompliantJSON(
         case 'fda': return 'FDA Pharmacogenomic Label';
         default: return e;
       }
-    }) || []
+    }) || [],
+    ...(drug.cpicGuidelineUrl && { cpic_guideline: drug.cpicGuidelineUrl }),
+    fda_label: `FDA Pharmacogenomic Label for ${drug.drug}`,
+    variant_impact: `Impact of ${drug.gene} variant on ${drug.drug} metabolism`,
+    clinical_annotation: drug.clinicalNote
   })) || [];
   
   // Transform quality metrics
@@ -215,12 +219,12 @@ export function transformToCompliantJSON(
     vcf_parse_success: true,
     variants_annotated: internalResult.variants?.length || 0,
     annotation_rate: internalResult.vcfMetrics?.annotated ? 
-      internalResult.vcfMetrics.annotated / internalResult.vcfMetrics.totalVariants : 0,
-    data_completeness: internalResult.vcfMetrics?.coverage / 100 || 0,
+      parseFloat((internalResult.vcfMetrics.annotated / internalResult.vcfMetrics.totalVariants).toFixed(2)) : 0,
+    data_completeness: parseFloat((internalResult.vcfMetrics?.coverage / 100 || 0).toFixed(2)),
     confidence_metrics: {
-      variant_evidence: internalResult.primaryDrug?.variantEvidence || 0 / 100,
-      guideline_match: internalResult.primaryDrug?.guidelineMatch || 0 / 100,
-      data_completeness: internalResult.primaryDrug?.dataCompleteness || 0 / 100
+      variant_evidence: parseFloat(((internalResult.primaryDrug?.variantEvidence || 0) / 100).toFixed(2)),
+      guideline_match: parseFloat(((internalResult.primaryDrug?.guidelineMatch || 0) / 100).toFixed(2)),
+      data_completeness: parseFloat(((internalResult.primaryDrug?.dataCompleteness || 0) / 100).toFixed(2))
     }
   };
   

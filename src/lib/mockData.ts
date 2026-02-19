@@ -14,6 +14,15 @@ export interface DrugRisk {
   dataCompleteness: number;
   clinicalNote: string;
   evidence: ("cpic" | "pharmgkb" | "fda")[];
+  cpicGuidelineUrl?: string;
+  recommendation: string;
+  guidelineMatchPercentage: number;
+  variantImpactScore: number;
+  clinicalSignificance: string;
+  dosingGuidance: string;
+  alternativeOptions?: string[];
+  monitoringRequirements?: string[];
+  severityScore: number; // 1-10 scale
 }
 
 export interface MockAnalysisResult {
@@ -45,6 +54,14 @@ export const mockResult: MockAnalysisResult = {
     dataCompleteness: 89,
     clinicalNote: "Avoid codeine — ultra-rapid or poor metabolizer status creates life-threatening opioid toxicity risk.",
     evidence: ["cpic", "pharmgkb", "fda"],
+    recommendation: "AVOID codeine. Use alternative analgesics (e.g., morphine at reduced doses, tramadol with caution).",
+    guidelineMatchPercentage: 95,
+    variantImpactScore: 9.2,
+    clinicalSignificance: "Contraindicated due to risk of inadequate analgesia or morphine toxicity",
+    dosingGuidance: "Avoid in PMs due to lack of analgesic efficacy; avoid in UMs due to risk of morphine overdose",
+    alternativeOptions: ["Morphine", "Oxycodone", "Tramadol", "Non-opioid analgesics"],
+    monitoringRequirements: ["Pain assessment", "Respiratory monitoring"],
+    severityScore: 9
   },
   allDrugs: [
     {
@@ -59,6 +76,14 @@ export const mockResult: MockAnalysisResult = {
       dataCompleteness: 89,
       clinicalNote: "Avoid standard dosing — increased toxicity risk.",
       evidence: ["cpic", "pharmgkb", "fda"],
+      recommendation: "AVOID codeine. Use alternative analgesics (e.g., morphine at reduced doses, tramadol with caution).",
+      guidelineMatchPercentage: 95,
+      variantImpactScore: 9.2,
+      clinicalSignificance: "Contraindicated due to risk of inadequate analgesia or morphine toxicity",
+      dosingGuidance: "Avoid in PMs due to lack of analgesic efficacy; avoid in UMs due to risk of morphine overdose",
+      alternativeOptions: ["Morphine", "Oxycodone", "Tramadol", "Non-opioid analgesics"],
+      monitoringRequirements: ["Pain assessment", "Respiratory monitoring"],
+      severityScore: 9
     },
     {
       drug: "WARFARIN",
@@ -72,6 +97,14 @@ export const mockResult: MockAnalysisResult = {
       dataCompleteness: 85,
       clinicalNote: "Reduce initial warfarin dose by 25–30%; monitor INR closely.",
       evidence: ["cpic", "pharmgkb"],
+      recommendation: "Initiate warfarin at 25-30% reduced dose. Target INR 2.0-3.0. Check within 3-5 days.",
+      guidelineMatchPercentage: 88,
+      variantImpactScore: 7.5,
+      clinicalSignificance: "Reduced metabolism increases bleeding risk",
+      dosingGuidance: "Reduce initial dose by 15-25% based on genotype",
+      alternativeOptions: ["Apixaban", "Rivaroxaban", "Dabigatran"],
+      monitoringRequirements: ["INR monitoring", "Bleeding assessment"],
+      severityScore: 8
     },
     {
       drug: "SIMVASTATIN",
@@ -85,6 +118,14 @@ export const mockResult: MockAnalysisResult = {
       dataCompleteness: 88,
       clinicalNote: "Standard simvastatin dosing is appropriate for this patient.",
       evidence: ["cpic", "fda"],
+      recommendation: "Standard dosing applicable. No pharmacogenomic dose adjustment required.",
+      guidelineMatchPercentage: 92,
+      variantImpactScore: 5.0,
+      clinicalSignificance: "Normal transporter function",
+      dosingGuidance: "Standard dosing appropriate",
+      alternativeOptions: ["Pravastatin", "Rosuvastatin"],
+      monitoringRequirements: ["Lipid panel", "Liver enzymes", "Muscle symptoms"],
+      severityScore: 2
     },
     {
       drug: "CLOPIDOGREL",
@@ -98,6 +139,14 @@ export const mockResult: MockAnalysisResult = {
       dataCompleteness: 92,
       clinicalNote: "Use alternative antiplatelet agent (e.g., prasugrel or ticagrelor).",
       evidence: ["cpic", "pharmgkb", "fda"],
+      recommendation: "Use alternative antiplatelet therapy (prasugrel or ticagrelor). Clopidogrel will have diminished efficacy.",
+      guidelineMatchPercentage: 97,
+      variantImpactScore: 8.8,
+      clinicalSignificance: "Poor metabolizer status leads to reduced active metabolite formation",
+      dosingGuidance: "AVOID clopidogrel, use alternative P2Y12 inhibitor",
+      alternativeOptions: ["Prasugrel", "Ticagrelor"],
+      monitoringRequirements: ["Platelet function testing", "Cardiac event monitoring"],
+      severityScore: 8
     },
   ],
   variants: [

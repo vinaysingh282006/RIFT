@@ -86,6 +86,7 @@ export function validateAndHandleErrors(content: string): { isValid: boolean; er
   // Check for basic content validity
   let variantLines = 0;
   let malformedLines = 0;
+  let missingInfoTags = 0;
   
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i].trim();
@@ -142,6 +143,41 @@ export function validateAndHandleErrors(content: string): { isValid: boolean; er
           suggestion: 'Consider if this is intentional or if variants are missing',
           line: i + 1
         });
+      }
+      
+      // Validate INFO field for pharmacogenomic tags
+      if (info && info !== '.') {
+        const infoFields = info.split(';');
+        let hasGeneTag = false;
+        let hasStarAlleleTag = false;
+        let hasRsidTag = false;
+        
+        for (const field of infoFields) {
+          if (field.includes('GENE') || field.includes('GENE=')) {
+            hasGeneTag = true;
+          }
+          if (field.includes('STAR') || field.includes('ALLELE') || field.includes('DIPL')) {
+            hasStarAlleleTag = true;
+          }
+          if (field.includes('RSID') || field.startsWith('RS') || field.includes('rs')) {
+            hasRsidTag = true;
+          }
+        }
+        
+        // For pharmacogenomic analysis, we expect at least some of these tags
+        if (!hasGeneTag && !hasStarAlleleTag && !hasRsidTag) {
+          missingInfoTags++;
+          if (missingInfoTags <= 5) { // Limit to first 5 to avoid too many errors
+            errors.push({
+              type: 'validation',
+              severity: 'warning',
+              message: `Missing pharmacogenomic INFO tags at line ${i + 1}`,
+              details: 'INFO field should include GENE, STAR allele, or RSID annotations for pharmacogenomic analysis',
+              suggestion: 'Ensure VCF file includes pharmacogenomic annotations in INFO field (GENE, STAR allele, RSID)',
+              line: i + 1
+            });
+          }
+        }
       }
     }
   }
