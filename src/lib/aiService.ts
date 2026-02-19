@@ -8,6 +8,12 @@ interface AIPromptParams {
   phenotype: string;
   clinicalMode: 'doctor' | 'patient';
   evidenceSources: ('cpic' | 'pharmgkb' | 'fda')[];
+  variantImpactScore?: number;
+  severityScore?: number;
+  guidelineMatchPercentage?: number;
+  variantEvidence?: number;
+  guidelineMatch?: number;
+  dataCompleteness?: number;
 }
 
 interface AIExplanationResponse {
@@ -17,6 +23,12 @@ interface AIExplanationResponse {
   clinicalRelevance: string;
   dosingImplications: string;
   safetyConsiderations: string;
+  biologicalMechanism: string;
+  variantCitations: string[];
+  riskInterpretation: string;
+  therapeuticImplications: string;
+  populationSpecificNotes?: string;
+  additionalResources?: string[];
 }
 
 // Mock AI service for demonstration purposes
@@ -83,6 +95,24 @@ Clinical management: Initiate warfarin at 25-30% reduced dose. Monitor INR more 
         CLOPIDOGREL: `CYP2C19 mediates hepatic bioactivation of clopidogrel's prodrug to its active metabolite. The ${diplotype} genotype (${phenotype}) results in absent or reduced formation of active thiol derivative, impairing platelet aggregation inhibition.
 
 Therapeutic implications: Significantly increased risk of adverse cardiovascular events (stent thrombosis, MI) in PMs receiving standard clopidogrel dosing. Alternative P2Y12 inhibitors not requiring CYP2C19 metabolism (prasugrel, ticagrelor) demonstrate superior efficacy.`
+      },
+      
+      TPMT: {
+        AZATHIOPRINE: `TPMT encodes thiopurine S-methyltransferase, which inactivates azathioprine and its metabolites. The ${diplotype} genotype (${phenotype}) confers significantly reduced or absent TPMT activity, leading to accumulation of cytotoxic thioguanine nucleotides.
+
+Clinical implications: Patients with reduced TPMT activity are at markedly increased risk for severe, potentially fatal myelosuppression when treated with standard azathioprine doses. Dose reduction of 75-80% or alternative therapies are recommended.`
+      },
+      
+      DPYD: {
+        FLUOROURACIL: `DPYD encodes dihydropyrimidine dehydrogenase, the rate-limiting enzyme in fluorouracil catabolism. The ${diplotype} genotype (${phenotype}) results in reduced DPD activity, causing fluorouracil accumulation and severe toxicity.
+
+Clinical implications: Patients with DPD deficiency are at high risk for severe, potentially fatal toxicity including neutropenia, thrombocytopenia, severe mucositis, and neurotoxicity. Standard fluorouracil dosing is contraindicated in confirmed DPD-deficient patients.`
+      },
+      
+      SLCO1B1: {
+        SIMVASTATIN: `SLCO1B1 encodes the organic anion transporting polypeptide OATP1B1, which mediates hepatic uptake of simvastatin. The ${diplotype} genotype (${phenotype}) results in reduced transporter function, increasing systemic exposure to simvastatin acid.
+
+Clinical implications: Increased risk of statin-induced myopathy and rhabdomyolysis. Consider alternative statins not dependent on OATP1B1 for hepatic uptake (pravastatin, rosuvastatin) or reduced simvastatin doses.`
       }
     };
     
@@ -99,7 +129,16 @@ Therapeutic implications: Significantly increased risk of adverse cardiovascular
       ],
       clinicalRelevance: 'High clinical significance - dosing adjustment required',
       dosingImplications: 'Dose modification needed based on genotype',
-      safetyConsiderations: 'Monitor for adverse effects based on metabolic phenotype'
+      safetyConsiderations: 'Monitor for adverse effects based on metabolic phenotype',
+      biologicalMechanism: `The ${gene} gene encodes an enzyme/protein that affects ${drug} metabolism/transport/action. The ${phenotype} phenotype results from the ${diplotype} diplotype and leads to altered drug pharmacokinetics/pharmacodynamics.`,
+      variantCitations: [`Variant: ${variant.rsid}`, `Gene: ${gene}`],
+      riskInterpretation: `The ${phenotype} phenotype confers ${phenotype === 'PM' ? 'reduced function' : phenotype === 'UM' ? 'increased function' : 'intermediate function'} affecting drug efficacy and/or safety.`,
+      therapeuticImplications: 'Dosing adjustments or alternative therapies recommended based on genotype',
+      populationSpecificNotes: `Guidelines recommend specific dosing modifications for ${gene}/${drug} combinations in ${phenotype} patients`,
+      additionalResources: [
+        `https://cpicpgx.org/guidelines/guideline-for-${drug.toLowerCase()}-and-${gene.toLowerCase()}/`,
+        `https://www.pharmgkb.org/guidelineAnnotation/PA166104944`
+      ]
     };
   }
   
@@ -122,6 +161,18 @@ Instead of codeine, your healthcare provider may recommend alternative pain medi
       
       CYP2C19: {
         CLOPIDOGREL: `Your CYP2C19 genes (${diplotype}, ${phenotype}) affect how well your body converts clopidogrel to its active form. This means the medication may be less effective at preventing blood clots. Your doctor may recommend an alternative medication that works better for your genetic profile.`
+      },
+      
+      TPMT: {
+        AZATHIOPRINE: `Your TPMT genes (${diplotype}, ${phenotype}) affect how your body breaks down azathioprine. You may be at increased risk for severe side effects like low blood cell counts. Your doctor will likely reduce the dose or choose an alternative medication and monitor your blood counts closely.`
+      },
+      
+      DPYD: {
+        FLUOROURACIL: `Your DPYD genes (${diplotype}, ${phenotype}) affect how your body processes fluorouracil. You may be at high risk for severe, potentially life-threatening side effects including diarrhea, mouth sores, and low blood counts. Your oncologist will likely reduce the dose or avoid this medication entirely.`
+      },
+      
+      SLCO1B1: {
+        SIMVASTATIN: `Your SLCO1B1 genes (${diplotype}, ${phenotype}) affect how your body transports simvastatin into liver cells. You may be at increased risk for muscle-related side effects like myopathy or rhabdomyolysis. Your doctor may choose a different statin or adjust the dose and monitor for muscle symptoms.`
       }
     };
     
@@ -138,7 +189,15 @@ Instead of codeine, your healthcare provider may recommend alternative pain medi
       ],
       clinicalRelevance: 'Important for medication safety and effectiveness',
       dosingImplications: 'Medication dose may need adjustment',
-      safetyConsiderations: 'Potential for different side effects based on genetics'
+      safetyConsiderations: 'Potential for different side effects based on genetics',
+      biologicalMechanism: `Your ${gene} genes (${phenotype}) affect how your body processes ${drug}. This genetic variation influences the speed and effectiveness of drug metabolism.`,
+      variantCitations: [`Genetic Variant: ${variant.rsid}`],
+      riskInterpretation: `Your genetic makeup affects how this medication works in your body, which may change its effectiveness or risk of side effects.`,
+      therapeuticImplications: 'Your doctor will use this information to select the best treatment option for you',
+      populationSpecificNotes: `Research shows that people with your genetic profile may need different dosing or alternative medications`,
+      additionalResources: [
+        `https://cpicpgx.org/guidelines/guideline-for-${drug.toLowerCase()}-and-${gene.toLowerCase()}/`
+      ]
     };
   }
   

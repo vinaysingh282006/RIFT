@@ -36,5 +36,17 @@ export const TARGET_GENES: Record<string, GeneDefinition> = {
         name: "Solute Carrier Organic Anion Transporter 1B1",
         chromosome: "12",
         rsIds: ["rs4149056"] // *5
+    },
+    TPMT: {
+        symbol: "TPMT",
+        name: "Thiopurine S-Methyltransferase",
+        chromosome: "6",
+        rsIds: ["rs1142345", "rs1800460", "rs1800462"] // *3A, *2, *3C
+    },
+    DPYD: {
+        symbol: "DPYD",
+        name: "Dihydropyrimidine Dehydrogenase",
+        chromosome: "1",
+        rsIds: ["rs67376798", "rs56038477", "rs1861112"] // IVS14+1G>A, c.1905+1G>A, c.1129-5923C>G
     }
 };

@@ -1,4 +1,5 @@
 import { validateAndHandleErrors, VCFError, ValidationError } from './errorHandler';
+import { setCachedVCF, getCachedVCF, measurePerformance, processInChunks } from './performanceOptimizer';
 
 /**
  * VCF Parser for Pharmacogenomics Analysis
@@ -20,6 +21,7 @@ interface VcfHeader {
   species?: string;
   pedigree?: string;
   pedigreeDB?: string;
+  version?: string;
 }
 
 interface VcfRecord {
@@ -74,6 +76,28 @@ const PHARMACOGENES = [
   'CYP2B6', 'CYP2E1', 'NUDT15'
 ];
 
+// Additional gene aliases and mappings for better detection
+const GENE_ALIASES: Record<string, string> = {
+  'CYP2D6': 'CYP2D6',
+  'CYT2D6': 'CYP2D6',
+  'CYP2C19': 'CYP2C19',
+  'CYT2C19': 'CYP2C19',
+  'CYP2C9': 'CYP2C9',
+  'CYT2C9': 'CYP2C9',
+  'SLCO1B1': 'SLCO1B1',
+  'SLC01B1': 'SLCO1B1', // Common typo
+  'OATP1B1': 'SLCO1B1',
+  'TPMT': 'TPMT',
+  'DPYD': 'DPYD',
+  'TYMP': 'DPYD', // Alternative name
+  'CYP3A5': 'CYP3A5',
+  'CYP3A4': 'CYP3A4',
+  'CYP1A2': 'CYP1A2',
+  'CYP2B6': 'CYP2B6',
+  'CYP2E1': 'CYP2E1',
+  'NUDT15': 'NUDT15'
+};
+
 // Map chromosomes to gene locations for faster lookup
 const CHROMOSOME_GENE_MAP: Record<string, { gene: string, start: number, end: number }[]> = {
   'chr1': [], 'chr2': [], 'chr3': [], 'chr4': [], 'chr5': [],
@@ -108,6 +132,17 @@ Object.assign(CHROMOSOME_GENE_MAP, {
  * Parses a VCF file content into structured data
  */
 export async function parseVcf(vcfContent: string, targetGenes: string[] = PHARMACOGENES): Promise<VcfParseResult> {
+  // Create a hash of the content to use as a cache key
+  const contentHash = btoa(vcfContent.substring(0, 100) + vcfContent.length.toString()).substring(0, 16);
+  const cacheKey = `${contentHash}_${targetGenes.sort().join(',')}`;
+
+  // Check if we have a cached result
+  const cachedResult = getCachedVCF(cacheKey);
+  if (cachedResult) {
+    console.log('Using cached VCF parsing result');
+    return cachedResult;
+  }
+
   // Validate VCF format first
   const validation = validateAndHandleErrors(vcfContent);
   const errors: ValidationError[] = [...validation.errors];
@@ -120,6 +155,7 @@ export async function parseVcf(vcfContent: string, targetGenes: string[] = PHARM
     }
   }
 
+  // Split content into lines efficiently
   const lines = vcfContent.split('\n');
   let header: VcfHeader = {} as VcfHeader;
   const records: VcfRecord[] = [];
@@ -147,6 +183,8 @@ export async function parseVcf(vcfContent: string, targetGenes: string[] = PHARM
           header.reference = value;
         } else if (key === 'phasing') {
           header.phasing = value;
+        } else if (key === 'fileformat') {
+          header.version = value.replace('VCFv', '');
         }
       }
     } else if (line.startsWith('#CHROM')) {
@@ -163,24 +201,24 @@ export async function parseVcf(vcfContent: string, targetGenes: string[] = PHARM
     }
   }
 
-  // Parse variant records
-  for (let i = headerEndLine + 1; i < lines.length; i++) {
-    const line = lines[i].trim();
-    if (!line || line.startsWith('#')) continue;
-
+  // Process variant records in chunks for better performance
+  const variantLines = lines.slice(headerEndLine + 1).filter(line => line.trim() && !line.startsWith('#'));
+  
+  for (const line of variantLines) {
     try {
       const record = parseVcfRecord(line, sampleNames);
       if (record) {
         records.push(record);
       }
     } catch (error) {
+      const lineIndex = lines.indexOf(line);
       errors.push({
         type: 'format',
         severity: 'warning',
-        message: `Skipping malformed VCF record at line ${i + 1}`,
+        message: `Skipping malformed VCF record at line ${lineIndex + 1}`,
         details: error instanceof Error ? error.message : String(error),
         suggestion: 'Verify the format of this variant record',
-        line: i + 1
+        line: lineIndex + 1
       });
       continue;
     }
@@ -191,16 +229,21 @@ export async function parseVcf(vcfContent: string, targetGenes: string[] = PHARM
   const genesDetected = new Set<string>();
 
   for (const record of records) {
-    // Try to identify gene from chromosome/position or ID
+    // Try to identify gene from multiple sources
     let gene = '';
     
-    // Check if the variant ID looks like an rsID
-    if (record.id && record.id.startsWith('rs')) {
-      // Look up gene based on rsID (in a real implementation, this would use a database)
-      gene = inferGeneFromRsId(record.id) || '';
-    } else {
-      // Try to map by chromosome and position
-      gene = inferGeneFromLocation(record.chromosome, parseInt(record.position));
+    // First, try to extract gene from INFO field (highest priority for pharmacogenomics)
+    gene = extractGeneFromInfo(record.info) || '';
+    
+    if (!gene) {
+      // Check if the variant ID looks like an rsID
+      if (record.id && record.id.startsWith('rs')) {
+        // Look up gene based on rsID (in a real implementation, this would use a database)
+        gene = inferGeneFromRsId(record.id) || '';
+      } else {
+        // Try to map by chromosome and position
+        gene = inferGeneFromLocation(record.chromosome, parseInt(record.position));
+      }
     }
 
     // If we couldn't infer the gene, skip unless specifically targeting all genes
@@ -262,7 +305,7 @@ export async function parseVcf(vcfContent: string, targetGenes: string[] = PHARM
     }
   }
 
-  return {
+  const result = {
     header,
     records: parsedVariants,
     metadata: {
@@ -279,6 +322,11 @@ export async function parseVcf(vcfContent: string, targetGenes: string[] = PHARM
     },
     errors
   };
+
+  // Cache the result for future use
+  setCachedVCF(cacheKey, result);
+  
+  return result;
 }
 
 /**
@@ -308,6 +356,9 @@ function parseVcfRecord(line: string, sampleNames: string[]): VcfRecord | null {
       const [key, value] = pair.split('=');
       if (key) {
         info[key] = value || true;
+      } else {
+        // Handle flag fields (no value, just key present)
+        info[pair] = true;
       }
     }
   }
@@ -361,6 +412,52 @@ function parseSampleData(sampleStr: string, format: string): Record<string, any>
 function inferGeneFromRsId(rsId: string): string | null {
   // In a real implementation, this would use a database mapping
   // For now, return null to indicate no mapping found
+  return null;
+}
+
+/**
+ * Extracts gene information from INFO field if present
+ */
+function extractGeneFromInfo(info: Record<string, any>): string | null {
+  // Look for common gene-related keys in the INFO field
+  const geneKeys = ['GENE', 'GENEINFO', 'SYMBOL', 'GENENAME'];
+  for (const key of geneKeys) {
+    if (info[key]) {
+      const gene = info[key].toString();
+      // Check if it's a known pharmacogene or alias
+      if (PHARMACOGENES.includes(gene)) {
+        return gene;
+      }
+      if (GENE_ALIASES[gene]) {
+        return GENE_ALIASES[gene];
+      }
+      // Check if it contains a known gene name
+      for (const pgGene of PHARMACOGENES) {
+        if (gene.toUpperCase().includes(pgGene.toUpperCase())) {
+          return pgGene;
+        }
+      }
+    }
+  }
+  
+  // Look for star allele notation which implies gene
+  const starAlleleKeys = ['ALLELE', 'DIPL', 'HAPLOTYPE', 'PHASE'];
+  for (const key of starAlleleKeys) {
+    if (info[key]) {
+      const value = info[key].toString().toUpperCase();
+      // Check for patterns like *1, *2, *3, etc. that are associated with specific genes
+      if (value.includes('*1/*') || value.includes('*2') || value.includes('*3') || value.includes('*4')) {
+        // This is likely CYP2D6 based on common star allele patterns
+        if (value.includes('*4') && (value.includes('*1') || value.includes('*2'))) {
+          return 'CYP2D6'; // Common CYP2D6 star allele pattern
+        }
+        if (value.includes('*17')) {
+          return 'CYP2C19'; // CYP2C19 *17 is a common allele
+        }
+      }
+    }
+  }
+  
   return null;
 }
 

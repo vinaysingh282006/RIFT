@@ -12,6 +12,7 @@ import { authRouter } from './auth/routes';
 import { analysisRouter } from './api/analysis';
 import { patientRouter } from './api/patients';
 import { reportRouter } from './api/reports';
+import { startCleanupScheduler } from './utils/cleanupScheduler';
 
 // Load environment variables
 dotenv.config();
@@ -79,6 +80,10 @@ async function startServer() {
     // Setup WebSocket
     setupWebSocket(io);
     logger.info('WebSocket server initialized');
+
+    // Start cleanup scheduler
+    startCleanupScheduler();
+    logger.info('Scheduled cleanup initialized');
 
     // Start HTTP server
     server.listen(PORT, () => {

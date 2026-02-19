@@ -46,8 +46,42 @@ export function ResultsDashboard({ mode, onToggleMode, results }: ResultsDashboa
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
           <PharmacogenomicProfile mode={mode} />
           <div className="space-y-5">
-            <AIExplanation mode={mode} onToggleMode={onToggleMode} />
+            <AIExplanation mode={mode} onToggleMode={onToggleMode} results={results} />
             <QualityMetrics />
+          </div>
+        </div>
+
+        {/* TIER 3 — Detailed Recommendations and Guidelines */}
+        <div className="glass-card rounded-2xl p-6">
+          <h3 className="font-bold text-lg mb-4">Detailed Recommendations</h3>
+          <div className="space-y-4">
+            {results?.risks.map((drugRisk, index) => (
+              <div key={index} className="border-l-4 border-primary pl-4 py-2">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h4 className="font-semibold">{drugRisk.drug} - {drugRisk.gene}</h4>
+                    <p className="text-sm text-muted-foreground mt-1">{drugRisk.recommendation}</p>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-sm font-medium">Guideline Match: {drugRisk.guidelineMatchPercentage.toFixed(1)}%</div>
+                    <div className="text-xs text-muted-foreground">Impact Score: {drugRisk.variantImpactScore.toFixed(1)}/10</div>
+                  </div>
+                </div>
+                
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {drugRisk.alternativeOptions && (
+                    <div className="text-xs bg-secondary px-2 py-1 rounded">
+                      <span className="font-medium">Alternatives:</span> {drugRisk.alternativeOptions.slice(0, 3).join(', ')}
+                    </div>
+                  )}
+                  {drugRisk.monitoringRequirements && (
+                    <div className="text-xs bg-secondary px-2 py-1 rounded">
+                      <span className="font-medium">Monitoring:</span> {drugRisk.monitoringRequirements.slice(0, 2).join(', ')}
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
 
