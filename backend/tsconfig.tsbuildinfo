@@ -1,0 +1,1 @@
+{"root":["./src/server-minimal.ts","./src/server-simple.ts","./src/server.ts","./src/test.ts","./src/api/analysis.ts","./src/api/patients.ts","./src/api/reports.ts","./src/auth/middleware.ts","./src/auth/routes.ts","./src/auth/service.ts","./src/database/connection.ts","./src/utils/logger.ts","./src/websocket/socket.ts"],"errors":true,"version":"5.9.3"}
