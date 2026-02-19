@@ -1,0 +1,126 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Deep medical blue background */
+    --background: 222 47% 6%;
+    --foreground: 210 40% 96%;
+
+    --card: 220 40% 9%;
+    --card-foreground: 210 40% 96%;
+
+    --popover: 220 40% 9%;
+    --popover-foreground: 210 40% 96%;
+
+    /* Teal accent */
+    --primary: 187 85% 43%;
+    --primary-foreground: 222 47% 6%;
+
+    --secondary: 220 30% 14%;
+    --secondary-foreground: 210 40% 80%;
+
+    --muted: 220 30% 12%;
+    --muted-foreground: 215 20% 55%;
+
+    --accent: 187 85% 43%;
+    --accent-foreground: 222 47% 6%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 220 25% 18%;
+    --input: 220 25% 16%;
+    --ring: 187 85% 43%;
+
+    --radius: 0.75rem;
+
+    /* Status / Risk colors */
+    --risk-safe: 142 71% 45%;
+    --risk-safe-bg: 142 71% 12%;
+    --risk-adjust: 38 92% 50%;
+    --risk-adjust-bg: 38 92% 10%;
+    --risk-toxic: 0 72% 51%;
+    --risk-toxic-bg: 0 72% 10%;
+    --risk-unknown: 220 15% 50%;
+    --risk-unknown-bg: 220 15% 12%;
+
+    /* Evidence badge colors */
+    --evidence-cpic: 142 71% 45%;
+    --evidence-pharmgkb: 200 85% 55%;
+    --evidence-fda: 28 90% 55%;
+
+    /* Sidebar */
+    --sidebar-background: 222 47% 6%;
+    --sidebar-foreground: 210 40% 80%;
+    --sidebar-primary: 187 85% 43%;
+    --sidebar-primary-foreground: 222 47% 6%;
+    --sidebar-accent: 220 30% 14%;
+    --sidebar-accent-foreground: 210 40% 80%;
+    --sidebar-border: 220 25% 18%;
+    --sidebar-ring: 187 85% 43%;
+
+    /* Glass effect */
+    --glass-bg: 220 40% 9%;
+    --glass-border: 220 30% 20%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+}
+
+@layer utilities {
+  .glass-card {
+    background: hsl(var(--card) / 0.8);
+    backdrop-filter: blur(12px);
+    border: 1px solid hsl(var(--glass-border));
+  }
+
+  .glass-card-primary {
+    background: hsl(var(--card) / 0.9);
+    backdrop-filter: blur(16px);
+    border: 1px solid hsl(var(--primary) / 0.25);
+    box-shadow: 0 0 0 1px hsl(var(--primary) / 0.08), 0 8px 32px hsl(222 47% 3% / 0.6);
+  }
+
+  .risk-safe {
+    color: hsl(var(--risk-safe));
+    background: hsl(var(--risk-safe-bg));
+    border-color: hsl(var(--risk-safe) / 0.3);
+  }
+
+  .risk-adjust {
+    color: hsl(var(--risk-adjust));
+    background: hsl(var(--risk-adjust-bg));
+    border-color: hsl(var(--risk-adjust) / 0.3);
+  }
+
+  .risk-toxic {
+    color: hsl(var(--risk-toxic));
+    background: hsl(var(--risk-toxic-bg));
+    border-color: hsl(var(--risk-toxic) / 0.3);
+  }
+
+  .risk-unknown {
+    color: hsl(var(--risk-unknown));
+    background: hsl(var(--risk-unknown-bg));
+    border-color: hsl(var(--risk-unknown) / 0.3);
+  }
+
+  .teal-glow {
+    box-shadow: 0 0 20px hsl(var(--primary) / 0.3);
+  }
+
+  .pipeline-line-fill {
+    transition: width 0.6s ease-in-out;
+  }
+}
