@@ -1,11 +1,11 @@
 import { useState, useEffect, useRef } from "react";
 import { ClinicalMode } from "@/lib/mockData";
-import { Navbar } from "@/components/Navbar";
-import { HeroSection } from "@/components/HeroSection";
-import { InputSection } from "@/components/InputSection";
-import { AnalysisPipeline } from "@/components/AnalysisPipeline";
-import { ResultsDashboard } from "@/components/ResultsDashboard";
-import { Footer } from "@/components/Footer";
+import { Navbar } from "@/features/landing/Navbar";
+import { HeroSection } from "@/features/landing/HeroSection";
+import { InputSection } from "@/features/analysis/InputSection";
+import { AnalysisPipeline } from "@/features/analysis/AnalysisPipeline";
+import { ResultsDashboard } from "@/features/dashboard/ResultsDashboard";
+import { Footer } from "@/features/landing/Footer";
 import { motion, AnimatePresence } from "framer-motion";
 import { parseVCFFile, ParsedVCF } from "@/ml/parsers/vcfParser";
 import { analyzeRisk } from "@/ml/engine/riskModel";
@@ -37,20 +37,18 @@ const Index = () => {
       const vcf = await parseVCFFile(file);
 
       // Step 2: Analyze
-      setTimeout(() => setPipelineStep(2), 500);
+      setPipelineStep(2);
       const risks = await analyzeRisk(vcf, drugs);
 
-      // Step 3-5: Artificial delay for UX (showing the pipeline steps)
-      setTimeout(() => setPipelineStep(3), 1500);
-      setTimeout(() => setPipelineStep(4), 2500);
+      // Step 3-5: Real progress completed
+      setPipelineStep(3);
+      setPipelineStep(4);
 
+      setAnalysisResults({ vcf, risks });
+      setAnalysisState("results");
       setTimeout(() => {
-        setAnalysisResults({ vcf, risks });
-        setAnalysisState("results");
-        setTimeout(() => {
-          resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-        }, 200);
-      }, 3500);
+        resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 200);
 
     } catch (err) {
       console.error(err);

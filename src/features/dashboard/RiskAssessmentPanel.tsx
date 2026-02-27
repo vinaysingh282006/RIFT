@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { mockResult, getRiskHex, RiskLevel, DrugRisk } from "@/lib/mockData";
-import { EvidenceBadges } from "@/components/EvidenceBadges";
-import { ConfidenceBar } from "@/components/ConfidenceBar";
+import { EvidenceBadges } from "@/features/dashboard/EvidenceBadges";
+import { ConfidenceBar } from "@/features/dashboard/ConfidenceBar";
 import { AlertTriangle, TrendingDown, CheckCircle2, HelpCircle, Zap } from "lucide-react";
 
 const riskIcons: Record<RiskLevel, React.ElementType> = {
