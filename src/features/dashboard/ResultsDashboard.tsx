@@ -1,12 +1,12 @@
 import { motion } from "framer-motion";
 import { ClinicalMode } from "@/lib/mockData";
-import { RiskAssessmentPanel } from "@/components/RiskAssessmentPanel";
-import { ClinicalRecommendation } from "@/components/ClinicalRecommendation";
-import { RiskComparisonTable } from "@/components/RiskComparisonTable";
-import { PharmacogenomicProfile } from "@/components/PharmacogenomicProfile";
-import { AIExplanation } from "@/components/AIExplanation";
-import { QualityMetrics } from "@/components/QualityMetrics";
-import { JsonOutputPanel } from "@/components/JsonOutputPanel";
+import { RiskAssessmentPanel } from "@/features/dashboard/RiskAssessmentPanel";
+import { ClinicalRecommendation } from "@/features/dashboard/ClinicalRecommendation";
+import { RiskComparisonTable } from "@/features/dashboard/RiskComparisonTable";
+import { PharmacogenomicProfile } from "@/features/dashboard/PharmacogenomicProfile";
+import { AIExplanation } from "@/features/dashboard/AIExplanation";
+import { QualityMetrics } from "@/features/dashboard/QualityMetrics";
+import { JsonOutputPanel } from "@/features/analysis/JsonOutputPanel";
 
 import { ParsedVCF } from "@/ml/parsers/vcfParser";
 import { DrugRisk } from "@/lib/mockData";

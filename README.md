@@ -1,59 +1,61 @@
-# PharmaGuard: Precision Medicine AI
+# PharmaGuard Intelligent Pharmacogenomics Platform
 
 ![PharmaGuard Banner](https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&q=80&w=2070&ixlib=rb-4.0.3)
 
-> **Empowering clinicians and patients with genomic-driven medication safety.**
+> **Enterprise-grade, AI-driven precision medicine at the point of care.**
 
-[![Live Demo](https://img.shields.io/badge/Live-Demo-brightgreen?style=for-the-badge&logo=vercel)](https://pharmaguard.vercel.app/)
-[![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)](LICENSE)
-[![Hackathon](https://img.shields.io/badge/Hackathon-Project-orange?style=for-the-badge)](https://devpost.com)
+[![Live Demo](https://img.shields.io/badge/Production-Live-blue?style=for-the-badge&logo=vercel)](https://pharmaguard.vercel.app/)
+[![Hackathon](https://img.shields.io/badge/Hackathon-Demo-orange?style=for-the-badge)](https://devpost.com)
+[![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
 
-## 🏥 Overview
+## 🧬 Overview
 
-**PharmaGuard** is a next-generation Pharmacogenomic (PGx) Clinical Support System. It bridges the gap between raw genomic data and actionable clinical insights. By analyzing a patient's VCF (Variant Call Format) file, PharmaGuard predicts drug metabolism phenotypes and flags potential adverse drug reactions (ADRs) in real-time.
+**PharmaGuard** is a next-generation Pharmacogenomic (PGx) SaaS platform. We bridge the gap between raw genomic data and actionable clinical insights. Designed for secure, rapid deployment in clinical settings, PharmaGuard ingests patient VCF datasets and delivers intelligent drug safety predictions in real-time.
 
-This platform merges advanced UI/UX principles with a robust client-side ML pipeline to deliver a production-grade healthcare experience.
+By shifting advanced machine learning and genomic parsing to the **client-side**, we guarantee zero-trust data privacy—no patient DNA leaves the browser. 
 
-## ✨ Key Features
+## ✨ Enterprise Features
 
-- **🧬 Client-Side ML Pipeline**: Securely parses and analyzes VCF genomic files directly in the browser. No sensitive DNA data leaves the user's device.
-- **⚡ Instant Risk Assessment**: Maps variants (e.g., *CYP2D6\*4*, *CYP2C19\*2*) to CPIC clinical guidelines.
-- **👥 Dual-Mode Interface**: 
-  - **Doctor Mode**: Detailed variant evidence, star-alleles, and clinical confidence scores.
-  - **Patient Mode**: Simplified "Safe/Caution/Toxic" alerts with actionable next steps.
-- **📄 Interactive Reports**: Generate and download comprehensive JSON/PDF analysis reports.
-- **🎨 Modern Aesthetics**: Glassmorphic UI details, smooth animations, and responsive design.
+- **Edge-Computed ML Pipeline**: Parse, filter, and analyze multi-gigabyte VCF files directly within the client environment. Fast, secure, and compliant.
+- **Dynamic Risk Engine**: Matches extracted patient variants (e.g., *CYP2D6\*4*) against the latest CPIC clinical guidelines to predict comprehensive Drug-Gene interactions.
+- **Adaptive Dashboards**: 
+  - **Clinician View**: Granular variant evidence, star-allele breakdowns, and CPIC confidence scores for robust decision-making.
+  - **Patient Portal**: Intuitive risk categorization (Safe / Adjust / Toxic) with clear, actionable summaries.
+- **Reporting & Export**: Instantly generate structured JSON or PDF compliance reports for EHR integration.
+- **Premium UX**: Glassmorphic interfaces, skeleton loaders, and micro-animations designed to reduce cognitive load during critical clinical workflows.
 
-## 🏗️ Architecture
+## 🏗️ Technical Architecture
 
-PharmaGuard uses a modern client-heavy architecture to ensure privacy and speed.
+PharmaGuard is engineered for scale, reliability, and security.
 
 ```mermaid
 graph TD
-    User[User / Clinician] -->|Uploads .VCF| UI[React UI Layer]
-    UI -->|Stream| Parser[VCF Parser Module]
-    Parser -->|Variants| Engine[Risk Prediction Engine]
-    Engine -->|Query| KB[Pharmacogene Knowledge Base]
-    KB -->|Guidelines| Engine
-    Engine -->|Drug Risks| Dashboard[Results Dashboard]
-    Dashboard -->|JSON/PDF| Report[Export Module]
+    User[Clinician / Patient] -->|Uploads .VCF| UI[PharmaGuard Edge Client]
+    subgraph Frontend Pipeline [Zero-Trust Processing Engine]
+        UI -->|Stream Parse| Parser[VCF Extraction Module]
+        Parser -->|Targeted Variants| Engine[Phenotype AI Model]
+        Engine -->|Heuristic Mapping| Rules[CPIC Rules Engine]
+    end
+    Rules -->|Computed Risks| Dashboard[Interactive Dashboard]
+    Dashboard -->|Encrypted Output| Export[Report Generator]
 ```
 
-## 🛠️ Tech Stack
+## 🛠️ Technology Stack
 
-- **Frontend**: React 18, TypeScript, Vite
-- **Styling**: Tailwind CSS, Shadcn/UI, Framer Motion
-- **State Management**: React Query, React Context
-- **Genomic Analysis**: Custom VCF Parser (Client-side), Heuristic Star-Allele Caller
-- **Deployment**: Vercel
+- **Core**: React 18, TypeScript, Vite
+- **Architecture**: Domain-Driven Feature Modules (`/app`, `/features`, `/ml`)
+- **Styling**: Tailwind CSS, Framer Motion, Shadcn/UI
+- **Data/State**: React Query Contexts
+- **Optimization**: Aggressive Rollup Code Splitting (vendor vs ui chunks)
 
-## 🚀 Getting Started
+## 🚀 Hackathon Setup & Demo Guide
+
+We've prepared this codebase for seamless demonstration.
 
 ### Prerequisites
 - Node.js 18+
-- npm or bun
 
-### Installation
+### Installation & Execution
 
 1. **Clone the repository**
    ```bash
@@ -66,39 +68,21 @@ graph TD
    npm install
    ```
 
-3. **Start development server**
-   ```bash
-   npm run dev
-   ```
-
-4. **Build for production**
+3. **Verify Production Build**
    ```bash
    npm run build
+   npm run preview
    ```
+   *(We highly recommend verifying the build locally before deploying to Vercel to ensure rollup chunks map correctly).*
 
-## 🧠 ML Pipeline Details
+4. **Testing the ML Pipeline**
+   We have included a test genomic file for the demo.
+   - Start the app.
+   - Navigate to the upload section.
+   - Select `public/demo.vcf`.
+   - Watch the edge-pipeline parse the file and predict High-Risk for *Codeine* (based on the synthetic CYP2D6 poor-metabolizer variants).
 
-The core logic resides in `src/ml`:
+## 📄 Licensing & Security
 
-1.  **Ingestion**: `vcfParser.ts` reads standard VCF v4.2 files, filtering for high-impact pharmacogenes (CYP2D6, CYP2C9, CYP2C19, SLCO1B1, VKORC1).
-2.  **Feature Engineering**: Variants are mapped to functional effects (e.g., "Loss of Function").
-3.  **Phenotyping**: A heuristic algorithm assigns metabolic phenotypes (PM, IM, NM, UM) based on allele combinations.
-4.  **Risk Prediction**: Phenotypes are cross-referenced with drug-specific guidelines (e.g., *CYP2D6 PM* + *Codeine* = **Toxic**).
-
-## 🤝 Contributing
-
-This project was built for the Healthcare AI Hackathon. Contributions are welcome!
-
-1.  Fork the Project
-2.  Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3.  Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4.  Push to the Branch (`git push origin feature/AmazingFeature`)
-5.  Open a Pull Request
-
-## 📄 License
-
-Distributed under the MIT License. See `LICENSE` for more information.
-
----
-
-*Built with ❤️ by the PharmaGuard Team.*
+Distributed under the MIT License. Built under strict security guidelines for the Healthcare AI Hackathon.
+*(Disclaimer: This is a hackathon prototype and not an FDA-approved medical device).*

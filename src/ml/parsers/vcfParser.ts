@@ -16,6 +16,8 @@ export interface ParsedVCF {
     variantCount: number;
 }
 
+import { TARGET_GENES } from "../knowledge/pharmacogenes";
+
 /**
  * Parses a VCF file content (string) into structured data.
  * Optimized for browser performance by only processing relevant lines if needed.
@@ -24,6 +26,8 @@ export const parseVCFContent = (content: string): ParsedVCF => {
     const lines = content.split('\n');
     const metadata: string[] = [];
     const variants: VCFVariant[] = [];
+
+    const targetChromosomes = new Set(Object.values(TARGET_GENES).map(g => g.chromosome));
 
     for (const line of lines) {
         const trimmed = line.trim();
@@ -39,6 +43,14 @@ export const parseVCFContent = (content: string): ParsedVCF => {
         const parts = trimmed.split(/\t+/);
         if (parts.length < 8) continue;
 
+        const chromRaw = parts[0];
+        const chromClean = chromRaw.replace(/^chr/i, '');
+
+        // Filter: only process variants on chromosomes that contain our target genes
+        if (!targetChromosomes.has(chromClean)) {
+            continue;
+        }
+
         const infoString = parts[7] || "";
         const infoMap: Record<string, string> = {};
 
@@ -49,7 +61,7 @@ export const parseVCFContent = (content: string): ParsedVCF => {
         });
 
         variants.push({
-            chrom: parts[0],
+            chrom: chromClean, // Normalize chromosome format internally
             pos: parseInt(parts[1], 10),
             id: parts[2],
             ref: parts[3],

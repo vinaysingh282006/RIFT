@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { ClinicalMode, mockResult } from "@/lib/mockData";
-import { EvidenceBadges } from "@/components/EvidenceBadges";
+import { EvidenceBadges } from "@/features/dashboard/EvidenceBadges";
 import { FileText, Pill, ArrowRight } from "lucide-react";
 
 interface ClinicalRecommendationProps {
